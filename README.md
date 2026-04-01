@@ -1,0 +1,1 @@
+- create .env and run <code> export $(grep -v '^#' .env | xargs) </code>
