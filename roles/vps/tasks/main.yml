@@ -1,7 +1,0 @@
-# plan is:
-# 1) update system
-# 2) install oh-my-zsh
-# 3) add new super user
-# 4) config ssh: change ssh port; restrict login by password and root
-# 5) install postgres; add config like here https://pgtune.leopard.in.ua/
-
