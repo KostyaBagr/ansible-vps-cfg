@@ -1,9 +1,100 @@
-- name: My first play
+- name: Setup VPS
   hosts: all
+  become: yes
   tasks:
-   - name: Ping my hosts
-     ansible.builtin.ping:
+    - name: Update packages
+      become: yes
+      apt:
+        upgrade: yes
+        update_cache: yes
+        cache_valid_time: 86400
+    
+    - name: Install reqiured system packages
+      apt:
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - git
+          - software-properties-common
+          - python3-pip
+          - virtualenv
+          - python3-setuptools
+          - python3-passlib
+        state: latest
+        update_cache: true
+    
+    - name: Install new packages
+      apt:
+        name:
+          - ufw
+          - zsh
+          - fail2ban
+          - python3-passlib
 
-   - name: Print message
-     ansible.builtin.debug:
-       msg: Hello world
+      # docker playbook
+    - name: Ensure keyrings directory exists
+      file:
+        path: /etc/apt/keyrings
+        state: directory
+        mode: '0755'
+
+    - name: Download Docker GPG key
+      get_url:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        dest: /etc/apt/keyrings/docker.asc
+        mode: '0644'
+
+    - name: Add Docker repository
+      apt_repository:
+        repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+        state: present
+        filename: docker
+
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+
+    - name: Install Docker and Docker Compose
+      ansible.builtin.package:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Ensure Docker service is enabled and started
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: yes
+
+    - name: Add ubuntu user to docker group
+      ansible.builtin.user:
+        name: ubuntu
+        groups: docker
+        append: yes
+
+          # user playbook
+    - name: Create a new user
+      user:
+        name: sysadmin
+        password: "{{ lookup('env', 'NEW_USER_PASSWORD') | password_hash('sha512') }}"
+        shell: /bin/zsh
+        state: present
+    
+    - name: Add user to sudo group
+      user:
+        name: sysadmin
+        groups: sudo  # On Debian/Ubuntu; for CentOS/RHEL, use 'wheel'
+        append: yes
+
+    - name: Allow passwordless sudo for the user (Debian/Ubuntu)
+      lineinfile:
+        path: /etc/sudoers
+        state: present
+        regexp: '^sysadmin'
+        line: 'sysadmin ALL=(ALL) NOPASSWD:ALL'
+        validate: '/usr/sbin/visudo -cf %s'
