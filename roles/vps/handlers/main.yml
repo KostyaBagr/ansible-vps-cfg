@@ -1,2 +1,21 @@
----
-# handlers file for vps
+- name: restart sshd
+  ansible.builtin.service:
+    name: sshd
+    state: restarted
+
+- name: restart ssh
+  ansible.builtin.service:
+    name: ssh
+    state: restarted
+    
+- name: Start and enable the fail2ban service
+  ansible.builtin.systemd_service:
+    name: fail2ban
+    state: started
+    enabled: true
+    
+- name: Start and enable the UFW service
+  ansible.builtin.systemd_service:
+    name: ufw
+    state: started
+    enabled: true

@@ -1,0 +1,21 @@
+- name: Create a new user
+  user:
+    name: "{{ lookup('env', 'NEW_USER_NAME') }}"
+    password: "{{ lookup('env', 'NEW_USER_PASSWORD') | password_hash('sha512') }}"
+    shell: /bin/zsh
+    state: present
+    create_home: yes
+
+- name: Add user to sudo group
+  user:
+    name: "{{ lookup('env', 'NEW_USER_NAME') }}"
+    groups: sudo  
+    append: yes
+
+- name: Allow passwordless sudo for the user (Debian/Ubuntu)
+  lineinfile:
+    path: /etc/sudoers
+    state: present
+    regexp: "^{{ lookup('env', 'NEW_USER_NAME') }}"
+    line: "{{ lookup('env', 'NEW_USER_NAME') }} ALL=(ALL) NOPASSWD:ALL"
+    validate: '/usr/sbin/visudo -cf %s'

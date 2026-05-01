@@ -1,0 +1,45 @@
+- name: Update SSH port
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?Port '
+    line: "Port {{ lookup('env', 'NEW_SSH_PORT')}}"
+    validate: '/usr/sbin/sshd -t -f %s'
+  notify: 
+    - restart ssh
+    - restart sshd
+
+- name: Add SSH key for new user
+  ansible.builtin.authorized_key:
+    user: "{{ lookup('env', 'NEW_USER_NAME') }}"
+    key: "{{ lookup('file', 'authorized_keys') }}"
+    state: present
+
+- name: Restrict login by root
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PermitRootLogin '
+    line: "PermitRootLogin no"
+    validate: '/usr/sbin/sshd -t -f %s'
+  notify: 
+    - restart ssh 
+    - restart sshd
+
+- name: Restrict login via password
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication '
+    line: "PasswordAuthentication no"
+    validate: '/usr/sbin/sshd -t -f %s'  # Checks syntax before saving
+  notify:
+    - restart ssh
+    - restart sshd
+
+- name: Set login via pub key
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PubkeyAuthentication '
+    line: "PubkeyAuthentication yes"
+    validate: '/usr/sbin/sshd -t -f %s'  # Checks syntax before saving
+  notify:
+    - restart ssh
+    - restart sshd
