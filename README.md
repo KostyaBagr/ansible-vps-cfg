@@ -13,6 +13,6 @@
 <h2> <b> How to start </b> </h2> <br>
 - create .env and run <code> export $(grep -v '^#' .env | xargs) </code> (check .env.example) <br>
 - create authorized_keys file <code> touch authorized_keys </code> <br>
-- run <code> ansible-playbook -i inventory.yml playbook.yml </code> <br>
+- run <code> ansible-playbook -i inventory.yaml playbook.yaml </code> <br>
 
 
