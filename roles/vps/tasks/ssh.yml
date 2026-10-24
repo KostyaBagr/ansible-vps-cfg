@@ -13,6 +13,7 @@
     user: "{{ lookup('env', 'NEW_USER_NAME') }}"
     key: "{{ lookup('file', 'authorized_keys') }}"
     state: present
+  when: (lookup('env', 'VPS_AUTH_METHOD') | default('password', true)) == 'password'
 
 - name: Restrict login by root
   ansible.builtin.lineinfile:
